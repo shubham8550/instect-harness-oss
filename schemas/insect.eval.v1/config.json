@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/config.json",
+  "title": "Config",
+  "type": "object",
+  "description": "Root of the TOML-in-repo config (`.insect/bugbot.toml` or equivalent). Defines which finding categories run, severity floors, custom rules, noise-budget, provider routing, auto-fix policy, and notification destinations. Loaded by both the harness CLI and bugbot CI.",
+  "additionalProperties": false,
+  "required": ["version", "categories"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Config schema version. Must match a supported `insect.eval.v<N>` major.",
+      "pattern": "^v[0-9]+$"
+    },
+    "org_id": {
+      "type": "string",
+      "description": "Optional org identifier. Populated by the platform; ignored by self-hosted harness."
+    },
+    "repo_id": {
+      "type": "string",
+      "description": "Optional repo identifier."
+    },
+    "categories": {
+      "type": "object",
+      "description": "Category → policy map. Keys are category names (matching `Finding.category`). Each entry toggles enable, intensity (effort/budget), and a per-category severity floor.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["enabled"],
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "intensity": {
+            "type": "string",
+            "description": "How aggressively to spend tokens / time on this category. `light` = fast pass; `standard` = default; `deep` = full agentic dive.",
+            "enum": ["off", "light", "standard", "deep"]
+          },
+          "severity_floor": {
+            "$ref": "common.json#Severity",
+            "description": "Findings below this severity are dropped before posting."
+          }
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "description": "Custom rule definitions. Each entry is an open object referencing a Scorer/Judge module + parameters.",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "noise_budget": {
+      "type": "object",
+      "description": "Caps on volume of findings per PR/file. Keys are not enumerated to allow tuning; common entries: `max_findings_per_pr`, `max_findings_per_file`, `dedupe_window_days`.",
+      "additionalProperties": true
+    },
+    "provider_routing": {
+      "type": "array",
+      "description": "Ordered list of `(provider, model)` refs with priority. Position in the array IS the priority; the router tries the first that has budget and matching capabilities.",
+      "items": {
+        "$ref": "provider_model_ref.json"
+      }
+    },
+    "auto_fix_policy": {
+      "type": "string",
+      "description": "Global auto-fix policy. `off` = never write fixes; `suggest` = include `suggested_fix` payloads but never apply; `commit-on-low-only` = auto-commit low-severity fixes; `commit-all-on-green` = auto-commit any fix that keeps CI green.",
+      "enum": ["off", "suggest", "commit-on-low-only", "commit-all-on-green"]
+    },
+    "notifications": {
+      "type": "object",
+      "description": "Notification destinations (Slack webhook, email list, GitHub PR-comment toggle). Open object — concrete keys are platform-defined.",
+      "additionalProperties": true
+    }
+  }
+}

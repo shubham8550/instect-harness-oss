@@ -1,0 +1,13 @@
+[package]
+name = "insect-proto"
+description = "gRPC service definitions for the Insect harness (tonic-build generated)."
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

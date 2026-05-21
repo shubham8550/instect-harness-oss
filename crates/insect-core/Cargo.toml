@@ -1,0 +1,13 @@
+[package]
+name = "insect-core"
+description = "Shared domain types for the Insect harness (consumes generated schema types)."
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/common.json",
+  "title": "Common",
+  "type": "object",
+  "description": "Shared primitive types for the insect.eval.v1 contract. Identifiers, timestamps, durations, money, and content-hashes are defined once here and `$ref`-ed everywhere else.",
+  "$defs": {
+    "Ulid": {
+      "$anchor": "Ulid",
+      "title": "Ulid",
+      "type": "string",
+      "description": "Crockford-base32 ULID: 26 chars, lexicographically sortable, monotonic when generated within the same millisecond.",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "Timestamp": {
+      "$anchor": "Timestamp",
+      "title": "Timestamp",
+      "type": "string",
+      "description": "RFC3339 / ISO8601 timestamp with timezone offset, e.g. `2026-05-22T18:30:00Z`. Always normalized to UTC by writers.",
+      "format": "date-time"
+    },
+    "Duration": {
+      "$anchor": "Duration",
+      "title": "Duration",
+      "description": "Either an ISO8601 duration string (`PT1H30M`) or a structured `{kind: \"millis\", value: integer}` envelope. The structured form is preferred when computed from a counter; the string form is preferred when authored by a human.",
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^P(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?$"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "const": "millis" },
+            "value": { "type": "integer", "minimum": 0 }
+          }
+        }
+      ]
+    },
+    "Money": {
+      "$anchor": "Money",
+      "title": "Money",
+      "type": "object",
+      "description": "Currency-typed monetary value stored as integer micros (1e-6 of the major unit) to avoid floating-point drift in budget accounting.",
+      "additionalProperties": false,
+      "required": ["currency", "micros"],
+      "properties": {
+        "currency": {
+          "type": "string",
+          "description": "ISO4217 currency code, e.g. `USD`, `EUR`.",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "micros": {
+          "type": "integer",
+          "description": "Amount in micros of the major unit. 1_000_000 micros = 1 USD. May be negative for credits/refunds."
+        }
+      }
+    },
+    "ContentHash": {
+      "$anchor": "ContentHash",
+      "title": "ContentHash",
+      "type": "string",
+      "description": "Algorithm-prefixed content hash. Currently only `sha256:` is supported; future algorithms (`blake3:`) MAY be added but receivers MUST reject unknown prefixes.",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "SemVer": {
+      "$anchor": "SemVer",
+      "title": "SemVer",
+      "type": "string",
+      "description": "Semantic version string. Matches `MAJOR.MINOR.PATCH` with optional pre-release / build metadata per semver.org.",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "Url": {
+      "$anchor": "Url",
+      "title": "Url",
+      "type": "string",
+      "description": "Absolute URL. Used for endpoint references, attachment locations, and provenance pointers.",
+      "format": "uri"
+    },
+    "Severity": {
+      "$anchor": "Severity",
+      "title": "Severity",
+      "type": "string",
+      "description": "Ordered severity scale shared by Finding and policy configuration. `blocking` is reserved for issues that must hard-fail CI.",
+      "enum": ["blocking", "high", "medium", "low", "info"]
+    },
+    "TokenAccounting": {
+      "$anchor": "TokenAccounting",
+      "title": "TokenAccounting",
+      "type": "object",
+      "description": "Per-call or per-trial token usage broken down into input/output and cache tiers, mirroring the cost-and-token model from research/11 §4.",
+      "additionalProperties": false,
+      "required": ["input_tokens", "output_tokens"],
+      "properties": {
+        "input_tokens": { "type": "integer", "minimum": 0 },
+        "output_tokens": { "type": "integer", "minimum": 0 },
+        "cache_read_tokens": { "type": "integer", "minimum": 0 },
+        "cache_write_tokens": { "type": "integer", "minimum": 0 },
+        "reasoning_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Hidden reasoning tokens reported by reasoning-capable models (o-series, Nemotron `detailed thinking`)."
+        }
+      }
+    },
+    "Ref": {
+      "$anchor": "Ref",
+      "title": "Ref",
+      "description": "A reference to another entity. Either an inline `{id}` pointer or a fully qualified `$id` URL. Codegen treats this as `Either<Ulid, Url>`.",
+      "oneOf": [
+        { "$ref": "#/$defs/Ulid" },
+        { "$ref": "#/$defs/Url" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@instect/cli",
+  "version": "0.1.0-alpha.0",
+  "private": false,
+  "description": "Insect harness command-line interface (TypeScript).",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "instect": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@instect/core": "workspace:*",
+    "@instect/sdk": "workspace:*"
+  }
+}

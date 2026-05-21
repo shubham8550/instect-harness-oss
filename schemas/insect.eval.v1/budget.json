@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/budget.json",
+  "title": "Budget",
+  "type": "object",
+  "description": "One node in the hierarchical budget tree (research/12 §2.4). Budgets cap dollars, tokens-per-minute, and in-flight concurrency. Children inherit and tighten parent limits; exhaustion behavior is configurable. `BudgetExceeded` is a Trace event, never a silent failure.",
+  "additionalProperties": false,
+  "required": ["id", "name", "behavior_on_exhaustion"],
+  "properties": {
+    "id": { "$ref": "common.json#Ulid" },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Display name, often the scope it governs (`run:openai`, `model:gpt-5`, `scorer:judge-v3`)."
+    },
+    "parent_ref": {
+      "type": "string",
+      "description": "Reference to the parent Budget node (by Ulid or `$id`). Root nodes omit this."
+    },
+    "dollars_micros": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Hard $ ceiling for this node, in USD micros (1_000_000 = $1). Optional — omit for no $ cap."
+    },
+    "tokens_per_minute": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Rate limit in tokens per 60s sliding window. Optional."
+    },
+    "max_inflight": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Maximum concurrent in-flight Trials/calls through this node. Optional."
+    },
+    "behavior_on_exhaustion": {
+      "type": "string",
+      "description": "What to do when this node is exhausted. `park` = wait for capacity; `fail` = surface a typed `BudgetExceeded` error; `drop` = silently skip the trial.",
+      "enum": ["park", "fail", "drop"]
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

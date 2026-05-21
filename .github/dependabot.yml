@@ -1,0 +1,72 @@
+#
+# Grouped Dependabot updates for harness-oss.
+# - One grouped PR per ecosystem per week, split major vs non-major.
+# - Patch-only updates ignored for deps we want to bump deliberately.
+
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 10
+    groups:
+      cargo-minor-patch:
+        update-types: ["minor", "patch"]
+      cargo-major:
+        update-types: ["major"]
+    ignore:
+      - dependency-name: tokio
+        update-types: ["version-update:semver-patch"]
+      - dependency-name: serde
+        update-types: ["version-update:semver-patch"]
+
+  - package-ecosystem: pip
+    directory: "/python"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 10
+    groups:
+      pip-minor-patch:
+        update-types: ["minor", "patch"]
+      pip-major:
+        update-types: ["major"]
+
+  - package-ecosystem: npm
+    directory: "/typescript"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 10
+    groups:
+      npm-minor-patch:
+        update-types: ["minor", "patch"]
+      npm-major:
+        update-types: ["major"]
+    ignore:
+      - dependency-name: react
+        update-types: ["version-update:semver-patch"]
+      - dependency-name: next
+        update-types: ["version-update:semver-patch"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 10
+    groups:
+      actions-minor-patch:
+        update-types: ["minor", "patch"]
+      actions-major:
+        update-types: ["major"]

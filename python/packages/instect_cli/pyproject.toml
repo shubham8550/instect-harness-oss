@@ -1,0 +1,23 @@
+[project]
+name = "instect-cli"
+version = "0.1.0a0"
+description = "Insect harness command-line interface (Python)."
+requires-python = ">=3.12"
+dependencies = [
+    "instect-core",
+    "instect-sdk",
+]
+
+[project.scripts]
+instect = "instect_cli.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+instect-core = { workspace = true }
+instect-sdk = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/instect_cli"]

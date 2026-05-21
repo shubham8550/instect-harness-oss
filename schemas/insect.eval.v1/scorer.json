@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/scorer.json",
+  "title": "Scorer",
+  "type": "object",
+  "description": "A deterministic grader. Scorers consume `(Sample, SolverOutput)` and produce a Score with no LLM call. They are cheap, cacheable, and parallel-safe. LLM-graded counterparts are Judges (see judge.json) — the split is deliberate (research/12 §1).",
+  "additionalProperties": false,
+  "required": ["id", "name", "version", "kind"],
+  "properties": {
+    "id": { "$ref": "common.json#Ulid" },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Namespaced human-readable name, e.g. `insect/exact-match`, `acme/taint-flow-rules-v3`."
+    },
+    "version": {
+      "$ref": "common.json#SemVer"
+    },
+    "kind": {
+      "type": "string",
+      "description": "Scorer implementation kind. `code-test` runs the candidate's output through a test suite; `ast-diff` and `taint-flow` are tree-sitter / dataflow grades unique to this harness (research/12 §3.5); `custom-*` allow user-supplied scorer code in the matching language.",
+      "enum": [
+        "exact-match",
+        "regex",
+        "json-schema",
+        "code-test",
+        "ast-diff",
+        "taint-flow",
+        "custom-rust",
+        "custom-python"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "description": "Scorer-kind-specific parameters. For `regex` this carries the pattern; for `json-schema` the embedded schema; for `code-test` the test harness and language; etc. Open by design.",
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

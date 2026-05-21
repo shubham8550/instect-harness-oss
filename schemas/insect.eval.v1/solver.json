@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/solver.json",
+  "title": "Solver",
+  "type": "object",
+  "description": "A pure function that produces output for a Sample. Solvers are cacheable by `(canonical_input, solver_id, version, model_ref)` because they hold no per-call state. Stateful tool-using counterparts are modeled as `Agent` (see agent.json) — the Solver/Agent split is deliberate (research/12 §1).",
+  "additionalProperties": false,
+  "required": ["id", "name", "version", "kind"],
+  "properties": {
+    "id": { "$ref": "common.json#Ulid" },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name, namespaced if needed (`insect/exact-match`, `acme/code-reviewer`).",
+      "minLength": 1
+    },
+    "version": {
+      "$ref": "common.json#SemVer",
+      "description": "SemVer for the Solver's logic. Cache invalidation hinges on this."
+    },
+    "kind": {
+      "type": "string",
+      "description": "Solver flavor. `model` = a single ChatProvider call; `function` = pure code (no model); `composed` = a chain/pipeline of other Solvers.",
+      "enum": ["model", "function", "composed"]
+    },
+    "model_ref": {
+      "$ref": "provider_model_ref.json",
+      "description": "Required when `kind == \"model\"`. Otherwise optional/unused."
+    },
+    "prompt_template_ref": {
+      "type": "string",
+      "description": "Optional reference into the PromptStore (content-addressed or named). Used by `model` Solvers."
+    },
+    "params": {
+      "type": "object",
+      "description": "Solver-specific configuration (temperature, system_message, retrieval flags, etc.). Open by design.",
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Free-form metadata.",
+      "additionalProperties": true
+    }
+  }
+}

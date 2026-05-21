@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/index.json",
+  "title": "Index",
+  "type": "object",
+  "description": "Registry mapping schema names to `$id` URLs. The codegen pipeline reads this file to enumerate the schemas it must process; humans use it as a table of contents. Every schema in this directory MUST be listed here. schema-lint: passes",
+  "additionalProperties": false,
+  "required": ["dialect", "namespace", "version", "schemas"],
+  "properties": {
+    "dialect": {
+      "type": "string",
+      "const": "https://json-schema.org/draft/2020-12/schema"
+    },
+    "namespace": {
+      "type": "string",
+      "const": "insect.eval.v1"
+    },
+    "version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "schemas": {
+      "type": "object",
+      "description": "Name → `$id` URL map. Codegen iterates these in alphabetical order.",
+      "additionalProperties": false,
+      "properties": {
+        "Common":           { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/common.json" },
+        "Sample":           { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/sample.json" },
+        "Dataset":          { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/dataset.json" },
+        "Solver":           { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/solver.json" },
+        "Agent":            { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/agent.json" },
+        "Scorer":           { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/scorer.json" },
+        "Judge":            { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/judge.json" },
+        "Eval":             { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/eval.json" },
+        "Run":              { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/run.json" },
+        "Trial":            { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/trial.json" },
+        "ProviderModelRef": { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/provider_model_ref.json" },
+        "Budget":           { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/budget.json" },
+        "BudgetRef":        { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/budget_ref.json" },
+        "Finding":          { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/finding.json" },
+        "Config":           { "type": "string", "const": "https://schemas.instect.dev/insect.eval.v1/config.json" }
+      },
+      "required": [
+        "Common",
+        "Sample",
+        "Dataset",
+        "Solver",
+        "Agent",
+        "Scorer",
+        "Judge",
+        "Eval",
+        "Run",
+        "Trial",
+        "ProviderModelRef",
+        "Budget",
+        "BudgetRef",
+        "Finding",
+        "Config"
+      ]
+    }
+  }
+}

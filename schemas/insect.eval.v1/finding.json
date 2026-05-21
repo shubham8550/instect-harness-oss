@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/finding.json",
+  "title": "Finding",
+  "type": "object",
+  "description": "A single bugbot/scorer finding against a file in a repository. Lives in the shared schema set because both the harness (as a Scorer output) and bugbot CI (as the PR-comment payload) emit and consume it. `fingerprint` is a normalized-snippet hash so the same logical finding survives rebase / line-number drift.",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "severity",
+    "confidence",
+    "category",
+    "title",
+    "description",
+    "file_path",
+    "line_start",
+    "line_end",
+    "fingerprint"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#Ulid" },
+    "severity": {
+      "$ref": "common.json#Severity"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Estimated probability that this finding is a true positive. UI surfaces this as a confidence bar; auto-fix policies gate on it."
+    },
+    "category": {
+      "type": "string",
+      "description": "Free-form category tag (`sql-injection`, `unused-import`, `data-race`, `secret-leak`). The harness's category taxonomy is open and extensible.",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "One-line headline for the finding. Rendered as the section header in PR comments."
+    },
+    "description": {
+      "type": "string",
+      "description": "Markdown-formatted longer-form explanation. May include code blocks, links, citations."
+    },
+    "file_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Repo-relative POSIX path to the file."
+    },
+    "line_start": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "1-indexed inclusive start line."
+    },
+    "line_end": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "1-indexed inclusive end line. Equal to `line_start` for single-line findings."
+    },
+    "cwe": {
+      "type": "string",
+      "description": "Optional CWE identifier (`CWE-89`, `CWE-79`)."
+    },
+    "owasp": {
+      "type": "string",
+      "description": "Optional OWASP category tag (`A03:2021-Injection`)."
+    },
+    "fingerprint": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable hash of the (category, normalized code snippet, file basename) tuple. Used to dedupe across PRs and survive rebase / line-shift. Algorithm is implementation-defined but MUST be deterministic."
+    },
+    "suggested_fix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "payload"],
+      "description": "Optional remediation. `patch` = unified diff; `replacement` = full file contents to overwrite; `note` = freeform guidance for a human to act on.",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["patch", "replacement", "note"]
+        },
+        "payload": {
+          "type": "string",
+          "description": "The fix body. Format depends on `kind`."
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "description": "References supporting this finding: related lines, trace span IDs, dataflow paths, prior commits. Each entry is an open object; concrete shape is bugbot-defined.",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "dismissed": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Populated when a human dismisses this finding. Future runs that produce the same fingerprint MUST honor this dismissal until the suppressing config changes.",
+      "required": ["at", "by", "reason"],
+      "properties": {
+        "at": { "$ref": "common.json#Timestamp" },
+        "by": {
+          "type": "string",
+          "description": "Dismisser identity — typically a username or service principal."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Free-text justification for the dismissal."
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

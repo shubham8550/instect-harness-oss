@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 Instect, Inc.
+#
+# codegen-drift.yml — fail PRs where committed `_generated/` outputs no longer
+# match a fresh run of the codegen pipeline against `schemas/`.
+#
+# Job name `drift-check` is referenced by branch-protection required-status-checks.
+
+name: codegen-drift
+
+on:
+  pull_request:
+    paths:
+      - "schemas/**"
+      - "tools/codegen/**"
+      - "tools/drift_check.sh"
+      - "**/_generated/**"
+      - ".github/workflows/codegen-drift.yml"
+  push:
+    branches: [main]
+    paths:
+      - "schemas/**"
+      - "tools/codegen/**"
+      - "tools/drift_check.sh"
+      - "**/_generated/**"
+
+concurrency:
+  group: codegen-drift-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  drift-check:
+    name: drift-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.1
+        with:
+          version: "0.5.7"
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5.1.1
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node 22
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version: "22"
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+        with:
+          version: "9.13.0"
+
+      - name: Set up Rust stable
+        uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b # stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo bin (typify-cli)
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        with:
+          path: ~/.cargo/bin
+          key: cargo-bin-typify-${{ runner.os }}-v1
+
+      - name: Install typify-cli
+        run: |
+          if ! command -v typify >/dev/null 2>&1; then
+            cargo install typify-cli --locked
+          fi
+
+      - name: Install codegen Python deps
+        run: uv pip install --system -r tools/codegen/requirements.txt
+
+      - name: Run drift-check
+        env:
+          PY: python
+        run: bash tools/drift_check.sh

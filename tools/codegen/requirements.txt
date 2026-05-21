@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Pinned codegen toolchain dependencies. `uv pip install -r` from this file.
+datamodel-code-generator>=0.26,<0.30
+jsonschema>=4.23,<5
+click>=8.1,<9

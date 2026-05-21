@@ -1,0 +1,28 @@
+# Cargo config — sane defaults for local dev and CI.
+#
+# CI consumers should set CARGO_INCREMENTAL=0 (and optionally point
+# RUSTC_WRAPPER at sccache) via the workflow env block. The settings below
+# are the defaults we ship; nothing here is host-specific.
+
+[build]
+# `incremental` defaults to true locally; CI overrides via env.
+# Uncomment to globally disable:
+# incremental = false
+
+[net]
+retry = 3
+git-fetch-with-cli = true
+
+[term]
+verbose = false
+color = "auto"
+
+# Wire sccache if it's installed and on PATH. Harmless if not present.
+# Consumers can override RUSTC_WRAPPER in their environment.
+# [build]
+# rustc-wrapper = "sccache"
+
+[alias]
+xtest = "test --workspace --all-features"
+xlint = "clippy --workspace --all-targets -- -D warnings"
+xfmt = "fmt --all"

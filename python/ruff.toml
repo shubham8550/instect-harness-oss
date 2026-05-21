@@ -1,0 +1,15 @@
+line-length = 100
+target-version = "py312"
+extend-exclude = ["**/_generated/**", "**/.venv/**"]
+
+[lint]
+select = ["E", "F", "I", "B", "UP", "RUF"]
+ignore = []
+
+[lint.per-file-ignores]
+"**/tests/**" = ["E501"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"

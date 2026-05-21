@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/run.json",
+  "title": "Run",
+  "type": "object",
+  "description": "A concrete execution of an Eval. A Run carries timing, status, the count of Trials it expects to produce, a free-form summary block, and a pointer into the WAL journal that is the source of truth for resumption (research/12 §2.6).",
+  "additionalProperties": false,
+  "required": ["id", "eval_ref", "started_at", "status", "trial_count", "wal_uri"],
+  "properties": {
+    "id": { "$ref": "common.json#Ulid" },
+    "eval_ref": {
+      "type": "string",
+      "description": "Reference to the Eval this Run executes."
+    },
+    "started_at": { "$ref": "common.json#Timestamp" },
+    "finished_at": {
+      "$ref": "common.json#Timestamp",
+      "description": "Set when status moves into a terminal state."
+    },
+    "status": {
+      "type": "string",
+      "description": "Run lifecycle status. `budget-exceeded` is distinct from `failed` so callers can distinguish capacity exhaustion from logic errors.",
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "aborted",
+        "budget-exceeded"
+      ]
+    },
+    "trial_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of Trials produced (or expected) by this Run."
+    },
+    "summary": {
+      "type": "object",
+      "description": "Aggregate metrics, top-line scores, cost totals, scorer breakdowns. Open by design — the harness writes whatever's useful for the chosen reporter.",
+      "additionalProperties": true
+    },
+    "wal_uri": {
+      "type": "string",
+      "description": "URI to the append-only WAL journal for this Run. Local default: `file:///path/runs/<id>/run.wal`. The WAL is the source of truth; `replay` and `resume` operate against it."
+    },
+    "otlp_trace_id": {
+      "type": "string",
+      "description": "OpenTelemetry trace ID (32 hex chars) for the root Run span. Optional but recommended; required for `insect ingest --otlp` round-trip."
+    },
+    "baseline_run_id": {
+      "$ref": "common.json#Ulid",
+      "description": "Optional pointer to a prior Run that this Run is being compared against (used by `insect diff`)."
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

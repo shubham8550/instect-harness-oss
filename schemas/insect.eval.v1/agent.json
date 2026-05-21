@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/agent.json",
+  "title": "Agent",
+  "type": "object",
+  "description": "A stateful tool-using Solver. Agents carry tools, a step budget, and a per-call budget node, and are inherently re-runnable rather than cache-hit. Same identity surface as Solver, plus the agentic extras.",
+  "additionalProperties": false,
+  "required": ["id", "name", "version", "kind", "tools", "max_steps"],
+  "properties": {
+    "id": { "$ref": "common.json#Ulid" },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Namespaced human-readable name."
+    },
+    "version": {
+      "$ref": "common.json#SemVer",
+      "description": "SemVer for the agent's logic + tool set + prompt scaffolding."
+    },
+    "kind": {
+      "type": "string",
+      "description": "Agent flavor. `react` = ReAct-style think/act loop; `plan-execute` = explicit planner + executor; `custom` = user-defined.",
+      "enum": ["react", "plan-execute", "custom"]
+    },
+    "model_ref": {
+      "$ref": "provider_model_ref.json",
+      "description": "The primary model the agent reasons with."
+    },
+    "prompt_template_ref": {
+      "type": "string",
+      "description": "Optional reference into the PromptStore for the agent's scaffold prompt."
+    },
+    "tools": {
+      "type": "array",
+      "description": "Tool references this agent is allowed to call. Each entry is a name + version + optional inline tool spec; the Sandbox/MCP layer resolves these to concrete callables.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Tool name, e.g. `web_search`, `file_read`, `python_exec`."
+          },
+          "version": { "$ref": "common.json#SemVer" },
+          "mcp_url": {
+            "$ref": "common.json#Url",
+            "description": "Optional MCP server URL providing this tool."
+          },
+          "params": {
+            "type": "object",
+            "description": "Tool-specific bind-time parameters.",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "max_steps": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Hard ceiling on agent loop iterations per Sample. Exceeding this is an error, NOT a budget event."
+    },
+    "budget_ref": {
+      "type": "string",
+      "description": "Reference to a Budget node (by Ulid or `$id` URL) governing this agent's resource consumption. Each agent invocation walks the budget tree (research/12 §2.4)."
+    },
+    "params": {
+      "type": "object",
+      "description": "Open agent-specific parameters (temperature, reflection cadence, etc.).",
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

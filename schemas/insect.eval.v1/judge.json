@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/judge.json",
+  "title": "Judge",
+  "type": "object",
+  "description": "An LLM-graded scorer. Judges produce a structured verdict via a model call, gated by an `output_schema` so the verdict is machine-readable. Judges get their own budget node and their own calibration loop (research/12 §2.4, §3.x).",
+  "additionalProperties": false,
+  "required": ["id", "name", "version", "model_ref", "rubric", "output_schema"],
+  "properties": {
+    "id": { "$ref": "common.json#Ulid" },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "$ref": "common.json#SemVer"
+    },
+    "model_ref": {
+      "$ref": "provider_model_ref.json",
+      "description": "Which model grades. SHOULD be pinned (`pinned_snapshot`) — judge drift across model versions is the single most common eval-validity bug."
+    },
+    "rubric": {
+      "description": "Either an inline rubric string (markdown / plain text) OR a reference into the PromptStore for a versioned rubric. Inline rubrics are fingerprinted into the cache key so edits invalidate prior judgements.",
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rubric_ref"],
+          "properties": {
+            "rubric_ref": {
+              "type": "string",
+              "description": "Content-addressed or named reference into the PromptStore."
+            }
+          }
+        }
+      ]
+    },
+    "output_schema": {
+      "type": "object",
+      "description": "JSON Schema (any dialect supported by the underlying provider's structured-output mode) describing the judge's verdict object. Open by design — this is itself a schema.",
+      "additionalProperties": true
+    },
+    "temperature": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 2,
+      "description": "Sampling temperature for the judge. Defaults to 0 in deterministic eval mode."
+    },
+    "calibration_ref": {
+      "type": "string",
+      "description": "Optional reference to a stored calibration record (Cohen's κ vs. human labels). When set, the harness MAY refuse to swap the judge model if κ degrades below threshold."
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

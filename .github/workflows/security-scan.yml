@@ -1,0 +1,110 @@
+#
+# harness-oss security scanning.
+# - gitleaks (secrets) — diff on PR, full history on weekly cron
+# - osv-scanner (CVEs across lockfiles) — SARIF upload
+# - trivy fs (HIGH/CRITICAL only, ignore-unfixed)
+#
+# SARIF upload requires `security-events: write`, scoped only to the jobs
+# that actually upload. Workflow-level default is read-only.
+
+name: security-scan
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 6 * * 1" # Mondays 06:17 UTC
+
+concurrency:
+  group: security-scan-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # actions/checkout v4
+        with:
+          # Weekly cron wants full history; PRs only need the diff.
+          fetch-depth: ${{ github.event_name == 'schedule' && 0 || 1 }}
+          persist-credentials: false
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.7
+        env:
+          # PRs from forks have no secrets — gitleaks-action handles the
+          # absence gracefully. We do NOT set GITLEAKS_LICENSE here.
+          GITHUB_TOKEN: ${{ github.token }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+          GITLEAKS_ENABLE_SUMMARY: "true"
+
+  osv-scanner:
+    name: osv-scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # actions/checkout v4
+        with:
+          persist-credentials: false
+
+      - name: osv-scanner
+        uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@75ed5c7bc0a268a26bd0caab6c93947f70cbc3b0 # v2.0.2
+        # NOTE: osv-scanner-action exposes a reusable workflow above; if the
+        # reusable form is unavailable to this repo (depending on repo
+        # permissions), fall back to the action call below. Both invocations
+        # are pinned to v2.0.2.
+        continue-on-error: true
+        with:
+          scan-args: |-
+            --lockfile=Cargo.lock
+            --lockfile=typescript/pnpm-lock.yaml
+            --lockfile=python/uv.lock
+            --recursive
+            --skip-git
+          results-file-name: osv-results.sarif
+          upload-sarif: true
+
+  trivy-fs:
+    name: trivy fs
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # actions/checkout v4
+        with:
+          persist-credentials: false
+
+      - name: trivy fs
+        uses: aquasecurity/trivy-action@76071ef0d7ec797419534a183b498b4d6366cf37 # 0.35.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "0" # we upload SARIF; Code Scanning enforces the gate
+
+      - name: Upload Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@181d5eefc20863364f96762470ba6f862bdef56b # v3.29.2
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-fs

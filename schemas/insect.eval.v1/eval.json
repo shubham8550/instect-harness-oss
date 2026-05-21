@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/eval.json",
+  "title": "Eval",
+  "type": "object",
+  "description": "The static definition of an evaluation: which Dataset to run, with which Solvers/Agents, graded by which Scorers/Judges, under which sandbox and budget. An Eval is parameterized at execution time into a Run.",
+  "additionalProperties": false,
+  "required": ["id", "name", "version", "dataset_ref", "solvers", "scorers", "created_at"],
+  "properties": {
+    "id": { "$ref": "common.json#Ulid" },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable, namespaced name, e.g. `insect/swe-bench-v2`, `acme/internal-security-bench`."
+    },
+    "version": {
+      "$ref": "common.json#SemVer"
+    },
+    "dataset_ref": {
+      "type": "string",
+      "description": "Reference to the Dataset (by Ulid or `$id` URL)."
+    },
+    "solvers": {
+      "type": "array",
+      "description": "Solver and/or Agent references. Each entry is a Ulid or fully-qualified `$id`. The harness resolves these against the Solver/Agent store.",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "scorers": {
+      "type": "array",
+      "description": "Deterministic Scorer references. May be empty if the Eval only uses Judges.",
+      "items": { "type": "string" }
+    },
+    "judges": {
+      "type": "array",
+      "description": "LLM-graded Judge references. May be empty.",
+      "items": { "type": "string" }
+    },
+    "sandbox_ref": {
+      "type": "string",
+      "description": "Optional reference to a Sandbox configuration (local, docker, MCP-registered, custom)."
+    },
+    "budget_ref": {
+      "type": "string",
+      "description": "Optional reference to a Budget root node. If absent, the Eval inherits the Run's budget tree."
+    },
+    "tags": {
+      "type": "array",
+      "description": "Free-form tags for grouping (`code`, `security`, `multimodal`, `long-context`).",
+      "items": { "type": "string" }
+    },
+    "created_at": {
+      "$ref": "common.json#Timestamp"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

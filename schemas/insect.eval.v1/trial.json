@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/trial.json",
+  "title": "Trial",
+  "type": "object",
+  "description": "One `Sample × Solver` pairing within a Run. Trials carry their own status, cost and token accounting, an array of SolverOutputs (Agents may produce multiple), and an array of ScoreRecords (one per applicable Scorer/Judge).",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "run_ref",
+    "sample_ref",
+    "solver_ref",
+    "started_at",
+    "status",
+    "outputs",
+    "scores",
+    "cost",
+    "tokens"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#Ulid" },
+    "run_ref": {
+      "type": "string",
+      "description": "Reference to the parent Run."
+    },
+    "sample_ref": {
+      "type": "string",
+      "description": "Reference to the Sample being evaluated."
+    },
+    "solver_ref": {
+      "type": "string",
+      "description": "Reference to the Solver or Agent that produced output."
+    },
+    "started_at": { "$ref": "common.json#Timestamp" },
+    "finished_at": {
+      "$ref": "common.json#Timestamp",
+      "description": "Set when the Trial reaches a terminal status."
+    },
+    "status": {
+      "type": "string",
+      "description": "Trial lifecycle status. Mirrors Run states plus `timeout` and `skipped` distinct from generic `failed` to support per-status reporters.",
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "timeout",
+        "aborted",
+        "budget-exceeded",
+        "skipped"
+      ]
+    },
+    "outputs": {
+      "type": "array",
+      "description": "One or more SolverOutput records. Pure Solvers emit exactly one; Agents may emit one per step plus a final.",
+      "items": {
+        "type": "object",
+        "description": "A single Solver/Agent output record. Open object — concrete shape depends on Solver kind.",
+        "additionalProperties": true
+      }
+    },
+    "scores": {
+      "type": "array",
+      "description": "ScoreRecords produced by each Scorer/Judge attached to the Eval. Each entry carries the scorer/judge ID, the value, and per-score metadata (confidence interval, rationale).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["scorer_ref", "value"],
+        "properties": {
+          "scorer_ref": {
+            "type": "string",
+            "description": "Reference to the Scorer or Judge that produced this score."
+          },
+          "value": {
+            "description": "Score value. Open shape: a boolean (pass/fail), number (continuous), string (categorical label), or structured verdict object (judge output).",
+            "type": ["boolean", "number", "string", "object", "null"]
+          },
+          "ci_low": { "type": "number" },
+          "ci_high": { "type": "number" },
+          "n": { "type": "integer", "minimum": 0 },
+          "stderr": { "type": "number", "minimum": 0 },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "cost": {
+      "$ref": "common.json#Money",
+      "description": "Total cost attributed to this Trial (model + sandbox + judge). Currency MUST match the Run's currency."
+    },
+    "tokens": {
+      "$ref": "common.json#TokenAccounting",
+      "description": "Aggregate token usage across all model calls in this Trial."
+    },
+    "provider_fingerprint": {
+      "type": "string",
+      "description": "Provider-reported response fingerprint (model version + system fingerprint). Required for cross-provider replay matching (research/11 §11)."
+    },
+    "trace_uri": {
+      "type": "string",
+      "description": "Pointer into the per-Trial OTLP trace file (e.g. `file://traces/<trial_id>.otlp.gz`)."
+    },
+    "seed": {
+      "type": "string",
+      "description": "Per-Trial deterministic seed (hex-encoded 32-byte blake3 of `run_id || sample_id || solver_id || attempt`)."
+    },
+    "error": {
+      "type": "object",
+      "description": "Populated when status is `failed`/`timeout`/`budget-exceeded`. Open object — concrete shape is harness-defined (kind, message, stack, retry_count).",
+      "additionalProperties": true
+    }
+  }
+}

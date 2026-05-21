@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/budget_ref.json",
+  "title": "BudgetRef",
+  "type": "object",
+  "description": "A small typed pointer to a Budget node. Used by Agents and Evals that want to attach to an existing budget tree without inlining the node definition. The `kind` field is a discriminator so codegen produces a tagged-union (sum type) instead of an ambiguous string.",
+  "additionalProperties": false,
+  "required": ["kind", "value"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "description": "Reference kind. `id` = a Budget ULID; `url` = a fully-qualified `$id` URL; `name` = a human-name lookup within the active Run's budget tree.",
+      "enum": ["id", "url", "name"]
+    },
+    "value": {
+      "type": "string",
+      "description": "The reference value. Format depends on `kind`."
+    }
+  }
+}

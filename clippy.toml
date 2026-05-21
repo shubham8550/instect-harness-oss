@@ -1,0 +1,10 @@
+# Clippy configuration — pedantic-ish but reasonable.
+# Lint allow/deny lists belong in source files via #![warn(...)] or in
+# CI flags. This file only holds tunables clippy reads directly.
+
+avoid-breaking-exported-api = false
+msrv = "1.84.0"
+cognitive-complexity-threshold = 30
+too-many-arguments-threshold = 8
+type-complexity-threshold = 250
+literal-representation-threshold = 16

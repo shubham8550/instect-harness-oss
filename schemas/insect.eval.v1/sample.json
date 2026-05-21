@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/sample.json",
+  "title": "Sample",
+  "type": "object",
+  "description": "One unit of input to an Eval. A Sample carries opaque `input` JSON (whatever the Solver consumes), an optional `target` (the expected output for deterministic scoring), free-form metadata, and an array of attachments referenced by content-hash.",
+  "additionalProperties": false,
+  "required": ["id", "input"],
+  "properties": {
+    "id": {
+      "$ref": "common.json#Ulid",
+      "description": "Stable ULID for this Sample. Sample IDs MUST be unique within a Dataset."
+    },
+    "input": {
+      "description": "Opaque input payload. Shape is Solver-defined — could be a string, a chat-message array, a JSON object, etc. Codegen treats this as `unknown`/`Value`/`Any`.",
+      "type": ["object", "array", "string", "number", "boolean", "null"]
+    },
+    "target": {
+      "description": "Optional expected output. Same opaque shape as `input`. Deterministic Scorers compare Solver output against this; if absent, only judge-graded or property-based scorers can run.",
+      "type": ["object", "array", "string", "number", "boolean", "null"]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Free-form, sample-scoped metadata: source URL, tags, splits, difficulty labels, etc. Open object — `additionalProperties: true` is intentional.",
+      "additionalProperties": true
+    },
+    "attachments": {
+      "type": "array",
+      "description": "Content-hash references to files associated with this Sample (images, PDFs, code archives). The hash is the canonical identifier; resolution to bytes is the Sandbox/Module layer's job.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["hash"],
+        "properties": {
+          "hash": { "$ref": "common.json#ContentHash" },
+          "media_type": {
+            "type": "string",
+            "description": "RFC6838 media type, e.g. `image/png`, `application/pdf`."
+          },
+          "filename": { "type": "string" },
+          "size_bytes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+# Default owners
+*                              @instect/maintainers
+
+# Cross-cutting / load-bearing surfaces
+/schemas/                      @instect/maintainers @instect/schema-stewards
+/crates/insect-core/           @instect/maintainers
+/python/instect_core/          @instect/maintainers
+/typescript/packages/core/     @instect/maintainers
+
+# Provider adapters
+/crates/insect-providers/      @instect/maintainers
+
+# CI
+/.github/                      @instect/maintainers
+/LICENSE                       @instect/maintainers
+/NOTICE                        @instect/maintainers

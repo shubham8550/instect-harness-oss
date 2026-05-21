@@ -1,0 +1,30 @@
+* text=auto eol=lf
+
+*.rs       text diff=rust
+*.py       text diff=python
+*.ts       text
+*.tsx      text
+*.js       text
+*.jsx      text
+*.json     text
+*.toml     text
+*.yaml     text
+*.yml      text
+*.md       text
+*.proto    text
+
+# Binary
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.ico      binary
+*.pdf      binary
+*.woff     binary
+*.woff2    binary
+*.ttf      binary
+*.otf      binary
+*.zip      binary
+*.tar      binary
+*.gz       binary
+*.eval     binary

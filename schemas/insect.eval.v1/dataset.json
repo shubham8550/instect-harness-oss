@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.instect.dev/insect.eval.v1/dataset.json",
+  "title": "Dataset",
+  "type": "object",
+  "description": "A versioned collection of Samples. Samples may be inlined or referenced by Sample-ID; Eval implementations are expected to dereference IDs against a separate Sample store.",
+  "additionalProperties": false,
+  "required": ["id", "name", "version", "samples"],
+  "properties": {
+    "id": {
+      "$ref": "common.json#Ulid",
+      "description": "Stable ULID for the Dataset as a whole."
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name, e.g. `swe-bench-verified-2026-q2`.",
+      "minLength": 1
+    },
+    "version": {
+      "$ref": "common.json#SemVer",
+      "description": "SemVer for the Dataset content. Bump major on any sample removal or target change."
+    },
+    "samples": {
+      "type": "array",
+      "description": "Either Sample-ID references (ULID strings) for samples stored elsewhere, or inline Sample objects. Mixed arrays are allowed.",
+      "items": {
+        "oneOf": [
+          { "$ref": "common.json#Ulid" },
+          { "$ref": "sample.json" }
+        ]
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Where this Dataset came from. The license field is a literal string for record-keeping; this schema does NOT enforce license compatibility.",
+      "additionalProperties": false,
+      "properties": {
+        "source_url": { "$ref": "common.json#Url" },
+        "source_commit": {
+          "type": "string",
+          "description": "Git commit SHA or other VCS revision identifier, if applicable."
+        },
+        "license": {
+          "type": "string",
+          "description": "Free-text license string (e.g. `CC-BY-4.0`, `MIT`, `proprietary`). Stored as data; no harness logic gates on this value."
+        },
+        "fetched_at": { "$ref": "common.json#Timestamp" },
+        "content_hash": {
+          "$ref": "common.json#ContentHash",
+          "description": "Hash of the canonicalized dataset bytes, for reproducibility."
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Open metadata bag for dataset-level annotations.",
+      "additionalProperties": true
+    }
+  }
+}
