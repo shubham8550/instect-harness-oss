@@ -36,7 +36,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1482605bfc5719782e1267fd0c0cc350fe7646b8 # v1 stable, pinned 2025-02-12
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v1 stable, pinned 2025-02-12
         with:
           toolchain: stable
           components: rustfmt, clippy
