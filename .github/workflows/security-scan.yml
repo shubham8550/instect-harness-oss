@@ -33,7 +33,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4 # actions/checkout v4
+        uses: actions/checkout@v6 # actions/checkout v4
         with:
           # Weekly cron wants full history; PRs only need the diff.
           fetch-depth: ${{ github.event_name == 'schedule' && 0 || 1 }}
@@ -57,7 +57,7 @@ jobs:
       security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4 # actions/checkout v4
+        uses: actions/checkout@v6 # actions/checkout v4
         with:
           persist-credentials: false
 
@@ -87,7 +87,7 @@ jobs:
       security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4 # actions/checkout v4
+        uses: actions/checkout@v6 # actions/checkout v4
         with:
           persist-credentials: false
 
@@ -104,7 +104,7 @@ jobs:
 
       - name: Upload Trivy SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@181d5eefc20863364f96762470ba6f862bdef56b # v3.29.2
+        uses: github/codeql-action/upload-sarif@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4.36.0
         with:
           sarif_file: trivy-results.sarif
           category: trivy-fs
